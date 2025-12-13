@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function HomePage() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-100 via-white to-slate-100 text-slate-900">
@@ -13,9 +15,18 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-xl border border-slate-200 bg-slate-50" />
-            <span className="text-lg font-semibold tracking-tight">SkillSwap</span>
-          </div>
+            <div className="flex items-center gap-3">
+  <Image
+    src="/logo.png"
+    alt="SkillSwap logo"
+    width={36}
+    height={36}
+    className="rounded-xl"
+    priority
+  />
+  <span className="text-lg font-semibold tracking-tight">SkillSwap</span>
+</div>
+
 
           <nav className="hidden items-center gap-6 text-sm text-slate-600 md:flex">
             <a className="hover:text-slate-900" href="#how">How it works</a>
@@ -37,6 +48,7 @@ export default function HomePage() {
               Get started
             </a>
           </div>
+        </div>
         </div>
       </header>
 
