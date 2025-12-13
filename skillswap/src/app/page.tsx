@@ -13,44 +13,45 @@ export default function HomePage() {
 
       {/* Navbar */}
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-3">
-  <Image
-    src="/logo.png"
-    alt="SkillSwap logo"
-    width={36}
-    height={36}
-    className="rounded-xl"
-    priority
-  />
-  <span className="text-lg font-semibold tracking-tight">SkillSwap</span>
-</div>
+  <div className="mx-auto flex h-16 max-w-6xl items-center px-6">
+    {/* Left */}
+    <div className="flex flex-1 items-center gap-3">
+      <Image
+        src="/logo.png"
+        alt="SkillSwap logo"
+        width={40}
+        height={40}
+        className="rounded-xl"
+        priority
+      />
+      <span className="text-xl font-semibold tracking-tight">SkillSwap</span>
+    </div>
 
+    {/* Center */}
+    <nav className="hidden flex-1 justify-center gap-8 text-sm text-slate-600 md:flex">
+      <a className="hover:text-slate-900" href="#how">How it works</a>
+      <a className="hover:text-slate-900" href="#why">Why SkillSwap</a>
+      <a className="hover:text-slate-900" href="#for">Who it’s for</a>
+    </nav>
 
-          <nav className="hidden items-center gap-6 text-sm text-slate-600 md:flex">
-            <a className="hover:text-slate-900" href="#how">How it works</a>
-            <a className="hover:text-slate-900" href="#why">Why SkillSwap</a>
-            <a className="hover:text-slate-900" href="#for">Who it’s for</a>
-          </nav>
+    {/* Right */}
+    <div className="flex flex-1 items-center justify-end gap-3">
+      <a
+        href="/auth"
+        className="hidden rounded-xl px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 md:inline-block"
+      >
+        Sign in
+      </a>
+      <a
+        href="/auth"
+        className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
+      >
+        Get started
+      </a>
+    </div>
+  </div>
+</header>
 
-          <div className="flex items-center gap-3">
-            <a
-              href="/auth"
-              className="hidden rounded-xl px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 md:inline-block"
-            >
-              Sign in
-            </a>
-            <a
-              href="/auth"
-              className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
-            >
-              Get started
-            </a>
-          </div>
-        </div>
-        </div>
-      </header>
 
       {/* Hero */}
       <main>
