@@ -6,6 +6,7 @@ import Link from "next/link";
 import Container from "../../components/ui/Container";
 import Card from "../../components/ui/Card";
 import KarmaPill from "../../components/ui/KarmaPill";
+import Sidebar from "../../components/ui/Sidebar";
 
 const POSTS = [
   {
@@ -71,10 +72,11 @@ const CATEGORIES = ["All categories", "Programming", "Design", "Math", "Language
 
 export default function FeedPage() {
   const { data } = useSession();
-
+  
   const [filterType, setFilterType] = useState<"All" | "Teach" | "Learn">("All");
   const [category, setCategory] = useState<string>("All categories");
   const [maxCost, setMaxCost] = useState<number>(5);
+  const [guidelinesOpen, setGuidelinesOpen] = useState(false);
 
   const filteredPosts = useMemo(() => {
     return POSTS.filter((post) => {
@@ -133,8 +135,14 @@ export default function FeedPage() {
       <div className="py-10">
         <Container>
           <div className="grid gap-8 md:grid-cols-12">
-            {/* Main */}
-            <div className="space-y-6 md:col-span-8">
+  {/* Left sidebar (only after login) */}
+  <div className="hidden md:col-span-3 md:block">
+    {data?.user ? <Sidebar onOpenGuidelines={() => setGuidelinesOpen(true)} /> : null}
+  </div>
+
+  {/* Main */}
+  <div className="space-y-6 md:col-span-6">
+
               {/* Filters */}
               <div className="flex flex-wrap items-center gap-4 rounded-3xl border border-slate-200 bg-white/70 p-4 shadow-sm backdrop-blur">
                 <div className="flex gap-2">
@@ -229,7 +237,7 @@ export default function FeedPage() {
             </div>
 
             {/* Side */}
-            <div className="space-y-6 md:col-span-4">
+            <div className="space-y-6 md:col-span-3">
               <Card className="p-6">
                 <h3 className="text-sm font-semibold text-slate-900">Your Karma</h3>
                 <div className="mt-4 flex items-baseline gap-2">
@@ -275,6 +283,59 @@ export default function FeedPage() {
           </div>
         </Container>
       </div>
+      {guidelinesOpen && (
+  <div className="fixed inset-0 z-50">
+    {/* Backdrop */}
+    <button
+      aria-label="Close guidelines"
+      onClick={() => setGuidelinesOpen(false)}
+      className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+    />
+
+    {/* Dialog */}
+    <div className="absolute left-1/2 top-1/2 w-[min(620px,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2">
+      <div className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-xl backdrop-blur">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">Guidelines</h3>
+            <p className="mt-1 text-sm text-slate-600">
+              Calm, professional exchanges. Keep it useful for both sides.
+            </p>
+          </div>
+
+          <button
+            onClick={() => setGuidelinesOpen(false)}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Close
+          </button>
+        </div>
+
+        <div className="mt-5 space-y-4">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="text-sm font-semibold text-slate-900">Core rules</div>
+            <ul className="mt-3 space-y-2 text-sm text-slate-700">
+              <li>😃 Be cool, kind, and respectful to one another.</li>
+              <li>📣 No self-promotion, spam, or advertisements.</li>
+              <li>🤬 No hate speech or harmful language.</li>
+              <li>🤔 Rules are subject to common sense.</li>
+            </ul>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+            <div className="text-sm font-semibold text-slate-900">Session etiquette</div>
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-700">
+              <li>Be respectful of each other’s time and commitments.</li>
+              <li>Keep sessions focused and actionable for both parties.</li>
+              <li>Provide constructive feedback after every exchange.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
