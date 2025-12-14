@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useAppState } from "../../app/app-state";
+
 
 
 type NavItem = {
@@ -45,6 +47,8 @@ const isActive = (item: NavItem) => {
   return item.href ? pathname === item.href : false;
 };
   const { data } = useSession();
+  const { karmaBalance } = useAppState();
+
 
   // Sidebar should only show if logged in
   if (!data?.user) return null;
@@ -73,7 +77,7 @@ const isActive = (item: NavItem) => {
       <div className="mt-4 rounded-2xl border border-slate-200 bg-white/80 p-3">
         <div className="text-xs font-medium text-slate-600">Karma balance</div>
         <div className="mt-1 flex items-baseline gap-2">
-          <div className="text-2xl font-semibold text-indigo-600">8</div>
+          <div className="text-2xl font-semibold text-indigo-600">{karmaBalance}</div>
           <div className="text-sm text-slate-600">karma</div>
         </div>
         <div className="mt-2 h-2 w-full rounded-full bg-slate-200">

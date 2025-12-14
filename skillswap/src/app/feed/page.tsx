@@ -7,6 +7,7 @@ import Container from "../../components/ui/Container";
 import Card from "../../components/ui/Card";
 import KarmaPill from "../../components/ui/KarmaPill";
 import Sidebar from "../../components/ui/Sidebar";
+import { useAppState } from "../app-state";
 
 const POSTS = [
   {
@@ -18,61 +19,72 @@ const POSTS = [
     karma: 3,
     category: "Programming",
     timestamp: "Dec 14",
+    withName: "Aarav",
   },
   {
     id: 2,
     type: "Learn" as const,
     title: "Linear algebra refresher",
-    description: "Need help understanding matrices and eigenvalues.",
+    description:
+      "Need help understanding matrices, vectors, and eigenvalues before exams.",
     karma: -2,
     category: "Math",
     timestamp: "Dec 15",
+    withName: "Isha",
   },
   {
     id: 3,
     type: "Teach" as const,
     title: "Figma prototyping tips",
     description:
-      "Sharing best practices for creating interactive prototypes in Figma.",
+      "Sharing best practices for creating clean, interactive prototypes in Figma.",
     karma: 2,
     category: "Design",
     timestamp: "Dec 15",
+    withName: "Neel",
   },
   {
     id: 4,
     type: "Learn" as const,
     title: "French conversation practice",
     description:
-      "Looking for a native speaker to practice everyday conversations.",
+      "Looking for a native speaker to practice everyday conversational French.",
     karma: -1,
     category: "Language",
     timestamp: "Dec 16",
+    withName: "Meera",
   },
   {
     id: 5,
     type: "Teach" as const,
     title: "Data structures deep dive",
-    description: "A session on trees, graphs and hash tables for interview prep.",
+    description:
+      "A focused session on trees, graphs, and hash tables for interview prep.",
     karma: 4,
     category: "Programming",
     timestamp: "Dec 16",
+    withName: "Rohan",
   },
   {
     id: 6,
     type: "Learn" as const,
     title: "Logo design fundamentals",
-    description: "Need guidance on creating balanced and meaningful logos.",
+    description:
+      "Need guidance on creating balanced, meaningful, and memorable logos.",
     karma: -3,
     category: "Design",
     timestamp: "Dec 17",
+    withName: "Ananya",
   },
 ];
+
 
 const CATEGORIES = ["All categories", "Programming", "Design", "Math", "Language"];
 
 export default function FeedPage() {
   const { data } = useSession();
-  
+  const { karmaBalance } = useAppState();
+
   const [filterType, setFilterType] = useState<"All" | "Teach" | "Learn">("All");
   const [category, setCategory] = useState<string>("All categories");
   const [maxCost, setMaxCost] = useState<number>(5);
@@ -219,6 +231,12 @@ export default function FeedPage() {
                     <p className="mt-1 text-sm leading-relaxed text-slate-600">
                       {post.description}
                     </p>
+                    <p className="mt-2 text-xs text-slate-500">
+  With{" "}
+  <span className="font-medium text-slate-700">
+    {post.withName}
+  </span>
+</p>
 
                     <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
                       <span>Category: {post.category}</span>
@@ -237,17 +255,19 @@ export default function FeedPage() {
             </div>
 
             {/* Side */}
+            
             <div className="space-y-6 md:col-span-3">
               <Card className="p-6">
                 <h3 className="text-sm font-semibold text-slate-900">Your Karma</h3>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="text-4xl font-bold text-indigo-600">8</span>
+                  <span className="text-4xl font-bold text-indigo-600">{karmaBalance}</span>
                   <span className="text-sm text-slate-600">karma</span>
                 </div>
                 <div className="mt-4 h-2 w-full rounded-full bg-slate-200">
                   <div
                     className="h-full rounded-full bg-indigo-600"
-                    style={{ width: `${(8 / 10) * 100}%` }}
+                    style={{ width: `${(karmaBalance / 10) * 100}%` }}
+
                   />
                 </div>
                 <p className="mt-2 text-xs text-slate-500">
