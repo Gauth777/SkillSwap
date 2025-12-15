@@ -231,11 +231,14 @@ export default function FeedPage() {
                     <p className="mt-1 text-sm leading-relaxed text-slate-600">
                       {post.description}
                     </p>
-                    <p className="mt-2 text-xs text-slate-500">
+                   <p className="mt-2 text-xs text-slate-500">
   With{" "}
-  <span className="font-medium text-slate-700">
+  <Link
+    href={`/u/${post.withName.toLowerCase()}`}
+    className="font-medium text-slate-700 hover:text-slate-900 underline underline-offset-4 decoration-slate-300 hover:decoration-slate-500"
+  >
     {post.withName}
-  </span>
+  </Link>
 </p>
 
                     <div className="mt-4 flex items-center justify-between text-xs text-slate-500">

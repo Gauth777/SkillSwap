@@ -8,6 +8,7 @@ import KarmaPill from "../../components/ui/KarmaPill";
 import Sidebar from "../../components/ui/Sidebar";
 import GuidelinesDialog from "../../components/ui/GuidelinesDialog";
 import { useAppState } from "../app-state";
+import Link from "next/link";
 
 type SwapStatus = "Pending" | "Active" | "Completed";
 type SwapDirection = "Teach" | "Learn";
@@ -105,10 +106,8 @@ export default function SwapsPage() {
 
   const isSignedIn = Boolean(data?.user);
 
-  const [swaps, setSwaps] = useState<Swap[]>(INITIAL_SWAPS);
+const { swaps, setSwaps, karmaBalance, setKarmaBalance, ledger, setLedger } = useAppState();
 
-  // ✅ Global app state (shared across Feed / Sidebar / Swaps)
-  const { karmaBalance, setKarmaBalance, ledger, setLedger } = useAppState();
 
   // ✅ Seed the ledger once (only if empty)
   useEffect(() => {
@@ -274,12 +273,15 @@ export default function SwapsPage() {
                             {s.title}
                           </div>
                           <div className="mt-1 text-xs text-slate-500">
-                            With{" "}
-                            <span className="font-medium text-slate-700">
-                              {s.withName}
-                            </span>{" "}
-                            • {s.when}
-                          </div>
+  With{" "}
+  <Link
+    href={`/u/${s.withName.toLowerCase()}`}
+    className="font-medium text-slate-700 underline underline-offset-4 decoration-slate-300 hover:text-slate-900 hover:decoration-slate-500"
+  >
+    {s.withName}
+  </Link>{" "}
+  • {s.when}
+</div>
 
                           <div className="mt-4 flex gap-2">
                             <button
@@ -341,11 +343,15 @@ export default function SwapsPage() {
                             {s.title}
                           </div>
                           <div className="mt-1 text-xs text-slate-500">
-                            With{" "}
-                            <span className="font-medium text-slate-700">
-                              {s.withName}
-                            </span>
-                          </div>
+  With{" "}
+  <Link
+    href={`/u/${s.withName.toLowerCase()}`}
+    className="font-medium text-slate-700 underline underline-offset-4 decoration-slate-300 hover:text-slate-900 hover:decoration-slate-500"
+  >
+    {s.withName}
+  </Link>{" "}
+  • {s.when}
+</div>
 
                           <div className="mt-4 flex items-center justify-between">
                             <div className="text-xs text-slate-600">
@@ -405,12 +411,15 @@ export default function SwapsPage() {
                             {s.title}
                           </div>
                           <div className="mt-1 text-xs text-slate-500">
-                            With{" "}
-                            <span className="font-medium text-slate-700">
-                              {s.withName}
-                            </span>{" "}
-                            • {s.when}
-                          </div>
+  With{" "}
+  <Link
+    href={`/u/${s.withName.toLowerCase()}`}
+    className="font-medium text-slate-700 underline underline-offset-4 decoration-slate-300 hover:text-slate-900 hover:decoration-slate-500"
+  >
+    {s.withName}
+  </Link>{" "}
+  • {s.when}
+</div>
                         </div>
                       ))
                     )}
