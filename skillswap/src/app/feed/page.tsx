@@ -13,9 +13,18 @@ import { useAppState, PostType } from "../app-state";
 
 const BASE_CATEGORIES = ["Programming", "Design", "Math", "Language"] as const;
 
-function formatTodayLikeDemo() {
-  // Keep it demo-simple; judges don’t care about perfect date formatting.
-  return "Today";
+// Fixed economy rule
+function karmaForDuration(mins: 30 | 45 | 60) {
+  if (mins === 30) return 2;
+  if (mins === 45) return 3;
+  return 4; // 60
+}
+
+// Optional date formatting for the feed timestamp
+function formatDateForTimestamp(iso: string) {
+  if (!iso) return "Today";
+  const d = new Date(iso + "T00:00:00");
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(d);
 }
 
 export default function FeedPage() {
@@ -39,7 +48,10 @@ export default function FeedPage() {
   const [cTitle, setCTitle] = useState("");
   const [cDescription, setCDescription] = useState("");
   const [cCategory, setCCategory] = useState<string>(BASE_CATEGORIES[0]);
-  const [cKarma, setCKarma] = useState<number>(2);
+
+  // NEW: date + duration (karma auto derived)
+  const [cDate, setCDate] = useState<string>(""); // yyyy-mm-dd
+  const [cDuration, setCDuration] = useState<30 | 45 | 60>(30);
 
   // When user enters compose, reset form (keeps demo clean)
   useEffect(() => {
@@ -48,7 +60,8 @@ export default function FeedPage() {
     setCTitle("");
     setCDescription("");
     setCCategory(BASE_CATEGORIES[0]);
-    setCKarma(2);
+    setCDate("");
+    setCDuration(30);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [composeMode]);
 
@@ -83,7 +96,13 @@ export default function FeedPage() {
     if (!title || !description) return;
 
     const nextId = Date.now();
-    const karma = cType === "Teach" ? Math.abs(cKarma) : -Math.abs(cKarma);
+
+    // FIXED karma: derived from duration, not user-controlled
+    const base = karmaForDuration(cDuration);
+    const karma = cType === "Teach" ? +base : -base;
+
+    // Timestamp: date if selected else Today
+    const timestamp = formatDateForTimestamp(cDate);
 
     setPosts((prev) => [
       {
@@ -93,7 +112,7 @@ export default function FeedPage() {
         description,
         karma,
         category: cCategory,
-        timestamp: formatTodayLikeDemo(),
+        timestamp,
         withName: (data?.user?.name ?? "Member").split(" ")[0], // demo-friendly
       },
       ...prev,
@@ -111,6 +130,8 @@ export default function FeedPage() {
     respondToPost(postId);
     router.push("/swaps");
   };
+
+  const derivedKarma = karmaForDuration(cDuration);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -238,6 +259,7 @@ export default function FeedPage() {
                       />
                     </div>
 
+                    {/* Category + Date */}
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
                         <label className="text-xs font-medium text-slate-600">
@@ -258,27 +280,49 @@ export default function FeedPage() {
 
                       <div>
                         <label className="text-xs font-medium text-slate-600">
-                          Karma {cType === "Teach" ? "reward" : "cost"}
+                          Date (optional)
                         </label>
-                        <div className="mt-2 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                          <input
-                            type="range"
-                            min={1}
-                            max={5}
-                            value={cKarma}
-                            onChange={(e) => setCKarma(Number(e.target.value))}
-                            className="h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-200"
-                          />
-                          <div className="shrink-0">
-                            <KarmaPill>
-                              {cType === "Teach" ? "+" : "-"}
-                              {Math.abs(cKarma)} karma
-                            </KarmaPill>
-                          </div>
-                        </div>
+                        <input
+                          type="date"
+                          value={cDate}
+                          onChange={(e) => setCDate(e.target.value)}
+                          className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-indigo-600 focus:outline-none"
+                        />
                         <div className="mt-2 text-[11px] text-slate-500">
-                          Karma applies only when a session is marked complete.
+                          Helps set expectations — you can leave this blank.
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Duration + Fixed Karma */}
+                    <div>
+                      <label className="text-xs font-medium text-slate-600">
+                        Session length (fixed karma)
+                      </label>
+
+                      <div className="mt-2 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                        <select
+                          value={cDuration}
+                          onChange={(e) =>
+                            setCDuration(Number(e.target.value) as 30 | 45 | 60)
+                          }
+                          className="w-full bg-transparent text-sm text-slate-900 focus:outline-none"
+                        >
+                          <option value={30}>30 minutes</option>
+                          <option value={45}>45 minutes</option>
+                          <option value={60}>60 minutes</option>
+                        </select>
+
+                        <div className="shrink-0">
+                          <KarmaPill>
+                            {cType === "Teach" ? "+" : "-"}
+                            {derivedKarma} karma
+                          </KarmaPill>
+                        </div>
+                      </div>
+
+                      <div className="mt-2 text-[11px] text-slate-500">
+                        Rule: 30 min = 2 karma. Karma applies only when a session is marked complete.
                       </div>
                     </div>
 
@@ -405,9 +449,7 @@ export default function FeedPage() {
                 )
               ) : (
                 <Card className="p-6">
-                  <div className="text-sm font-semibold text-slate-900">
-                    Tip
-                  </div>
+                  <div className="text-sm font-semibold text-slate-900">Tip</div>
                   <div className="mt-2 text-sm text-slate-600">
                     After you post, it will appear in the feed immediately. Karma
                     moves only when a session is marked complete.
@@ -419,9 +461,7 @@ export default function FeedPage() {
             {/* Side */}
             <div className="space-y-6 md:col-span-3">
               <Card className="p-6">
-                <h3 className="text-sm font-semibold text-slate-900">
-                  Your Karma
-                </h3>
+                <h3 className="text-sm font-semibold text-slate-900">Your Karma</h3>
                 <div className="mt-4 flex items-baseline gap-2">
                   <span className="text-4xl font-bold text-indigo-600">
                     {karmaBalance}
@@ -445,16 +485,12 @@ export default function FeedPage() {
                     Suggested swaps
                   </h3>
                   <div className="mt-4 space-y-3">
-                    {(suggested.length > 0 ? suggested : posts.slice(0, 3)).map(
-                      (p) => (
-                        <div key={p.id} className="border-l-2 border-indigo-600 pl-3">
-                          <p className="text-sm font-semibold text-slate-800">
-                            {p.title}
-                          </p>
-                          <p className="text-xs text-slate-600">{p.type}</p>
-                        </div>
-                      )
-                    )}
+                    {(suggested.length > 0 ? suggested : posts.slice(0, 3)).map((p) => (
+                      <div key={p.id} className="border-l-2 border-indigo-600 pl-3">
+                        <p className="text-sm font-semibold text-slate-800">{p.title}</p>
+                        <p className="text-xs text-slate-600">{p.type}</p>
+                      </div>
+                    ))}
                   </div>
                 </Card>
               ) : (
@@ -465,15 +501,13 @@ export default function FeedPage() {
                   <ul className="mt-4 space-y-2 text-sm text-slate-600">
                     <li>Write a clear scope (time + topic).</li>
                     <li>Set expectations in one sentence.</li>
-                    <li>Keep karma fair and realistic.</li>
+                    <li>Karma is fixed by session length.</li>
                   </ul>
                 </Card>
               )}
 
               <Card className="p-6">
-                <h3 className="text-sm font-semibold text-slate-900">
-                  Guidelines
-                </h3>
+                <h3 className="text-sm font-semibold text-slate-900">Guidelines</h3>
                 <button
                   onClick={() => setGuidelinesOpen(true)}
                   className="mt-3 w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-50"
