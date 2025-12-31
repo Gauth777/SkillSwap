@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+SkillSwap
 
-## Getting Started
+A karma-based skill exchange platform where people teach what they know and learn what they need — without money.
 
-First, run the development server:
+SkillSwap rewards completed contribution, not promises.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+✨ Overview
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+SkillSwap is a frontend-first demo that explores a simple idea:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Teach → earn karma
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Learn → spend karma
 
-## Learn More
+Karma updates only after a session is completed
 
-To learn more about Next.js, take a look at the following resources:
+No payments. No bidding. No inflated profiles.
+Just a clear loop of exchange and accountability.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+🔁 Core Flow
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+User posts what they can teach or want to learn
 
-## Deploy on Vercel
+Another user responds
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+A swap is created
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Session is completed
+
+Karma updates and is recorded in a ledger
+
+Reputation emerges from actions, not claims.
+
+🧠 Key Design Decisions
+
+Fixed karma rules
+Karma is derived from session duration (e.g. 30 min = 2 karma) and cannot be manually set.
+
+Ledger-based transparency
+Every meaningful action leaves a visible trace.
+
+Frontend-first demo
+Focused on system clarity and flow instead of backend complexity.
+
+🛠 Tech Stack
+
+Next.js (App Router)
+
+React
+
+TypeScript
+
+Tailwind CSS
+
+NextAuth (Google OAuth)
+
+React Context + localStorage (global state)
+
+Vercel (deployment)
+
+Backend services are planned for multi-user persistence and ledger integrity but were intentionally omitted for this demo.
+
+🎯 Target Users
+
+Students
+
+Early professionals
+
+Peer learners
+
+Builders with limited money but valuable skills
+
+🚧 Demo Notes
+
+Authentication is restricted in demo mode.
+
+The goal of this project is to demonstrate the skill exchange system and karma economy, not production infrastructure.
+
+🚀 What’s Next
+
+Backend for verified karma ledger
+
+Persistent user profiles
+
+Messaging between users
+
+Community-based skill circles
