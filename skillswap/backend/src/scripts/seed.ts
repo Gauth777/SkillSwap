@@ -204,7 +204,7 @@ async function seed() {
           handle: $handle,
           bio: $bio,
           karmaBalance: $karmaBalance,
-          joinedAt: datetime().toString()
+          joinedAt: toString(datetime())
         })
         `,
         { id: user.id, name: user.name, handle: user.handle, bio: user.bio, karmaBalance: user.karmaBalance }
@@ -243,7 +243,7 @@ async function seed() {
           delta: 7,
           type: 'welcome_bonus',
           note: 'Welcome to SkillSwap! Here is your starter karma.',
-          createdAt: datetime().toString()
+          createdAt: toString(datetime())
         })
         CREATE (u)-[:EARNED]->(t)
         `,
@@ -267,7 +267,7 @@ async function seed() {
           duration: $duration,
           karma: $karma,
           status: 'open',
-          createdAt: datetime().toString()
+          createdAt: toString(datetime())
         })
         CREATE (u)-[:CREATED]->(p)
         `,

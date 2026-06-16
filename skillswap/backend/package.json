@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "dev": "ts-node-dev --respawn --transpile-only ./src/index.ts",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "seed": "ts-node src/scripts/seed.ts"
@@ -14,7 +14,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "neo4j-driver": "^5.27.0"
+    "neo4j-driver": "^5.28.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

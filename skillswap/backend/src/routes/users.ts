@@ -43,11 +43,13 @@ router.get('/:id', async (req: Request, res: Response) => {
       `
       MATCH (u:User {id: $id})
       OPTIONAL MATCH (u)-[:CAN_TEACH]->(ts:Skill)
+      WITH u, collect(distinct ts.id) as skillsToTeach
       OPTIONAL MATCH (u)-[:WANTS_TO_LEARN]->(ls:Skill)
+      WITH u, skillsToTeach, collect(distinct ls.id) as skillsToLearn
       RETURN u { 
         .*, 
-        skillsToTeach: collect(distinct ts.id), 
-        skillsToLearn: collect(distinct ls.id) 
+        skillsToTeach: skillsToTeach, 
+        skillsToLearn: skillsToLearn 
       } as user
       `,
       { id },
@@ -83,7 +85,7 @@ router.post('/', async (req: Request, res: Response) => {
         u.handle = $handle,
         u.bio = $bio,
         u.karmaBalance = 8,
-        u.joinedAt = datetime().toString()
+        u.joinedAt = toString(datetime())
       ON MATCH SET
         u.name = $name,
         u.handle = $handle,
@@ -141,7 +143,7 @@ router.post('/', async (req: Request, res: Response) => {
         t.delta = 7,
         t.type = 'welcome_bonus',
         t.note = 'Welcome to SkillSwap! Here is your starter karma.',
-        t.createdAt = datetime().toString()
+        t.createdAt = toString(datetime())
       MERGE (u)-[:EARNED]->(t)
       `,
       { userId: id, txId }
@@ -152,11 +154,13 @@ router.post('/', async (req: Request, res: Response) => {
       `
       MATCH (u:User {id: $id})
       OPTIONAL MATCH (u)-[:CAN_TEACH]->(ts:Skill)
+      WITH u, collect(distinct ts.id) as skillsToTeach
       OPTIONAL MATCH (u)-[:WANTS_TO_LEARN]->(ls:Skill)
+      WITH u, skillsToTeach, collect(distinct ls.id) as skillsToLearn
       RETURN u { 
         .*, 
-        skillsToTeach: collect(distinct ts.id), 
-        skillsToLearn: collect(distinct ls.id) 
+        skillsToTeach: skillsToTeach, 
+        skillsToLearn: skillsToLearn 
       } as user
       `,
       { id }
@@ -225,11 +229,13 @@ router.put('/:id/skills', async (req: Request, res: Response) => {
       `
       MATCH (u:User {id: $id})
       OPTIONAL MATCH (u)-[:CAN_TEACH]->(ts:Skill)
+      WITH u, collect(distinct ts.id) as skillsToTeach
       OPTIONAL MATCH (u)-[:WANTS_TO_LEARN]->(ls:Skill)
+      WITH u, skillsToTeach, collect(distinct ls.id) as skillsToLearn
       RETURN u { 
         .*, 
-        skillsToTeach: collect(distinct ts.id), 
-        skillsToLearn: collect(distinct ls.id) 
+        skillsToTeach: skillsToTeach, 
+        skillsToLearn: skillsToLearn 
       } as user
       `,
       { id }

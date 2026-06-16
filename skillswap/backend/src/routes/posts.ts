@@ -71,7 +71,7 @@ router.post('/', async (req: Request, res: Response) => {
         p.duration = $duration,
         p.karma = $karma,
         p.status = 'open',
-        p.createdAt = datetime().toString()
+        p.createdAt = toString(datetime())
       MERGE (u)-[:CREATED]->(p)
       RETURN p
       `,

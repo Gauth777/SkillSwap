@@ -83,7 +83,7 @@ router.post('/request', async (req: Request, res: Response) => {
         s.duration = p.duration,
         s.karma = abs(p.karma),
         s.status = 'pending',
-        s.scheduledAt = datetime().toString()
+        s.scheduledAt = toString(datetime())
       CREATE (s)-[:FOR_POST]->(p)
       CREATE (requester)-[:REQUESTED]->(s)
       RETURN s as session
@@ -182,7 +182,7 @@ router.post('/:id/complete', async (req: Request, res: Response) => {
       MATCH (s:SwapSession {id: $id})
       WHERE s.status = 'accepted'
       
-      SET s.status = 'completed', s.completedAt = datetime().toString()
+      SET s.status = 'completed', s.completedAt = toString(datetime())
       
       WITH s
       MATCH (teacher:User {id: s.teacherId})
@@ -197,7 +197,7 @@ router.post('/:id/complete', async (req: Request, res: Response) => {
         type: 'session_completed_earned',
         relatedSessionId: s.id,
         note: 'Taught "' + s.title + '" to ' + s.learnerName,
-        createdAt: datetime().toString()
+        createdAt: toString(datetime())
       })
       CREATE (teacher)-[:EARNED]->(tTx)
       
@@ -207,7 +207,7 @@ router.post('/:id/complete', async (req: Request, res: Response) => {
         type: 'session_completed_spent',
         relatedSessionId: s.id,
         note: 'Learned "' + s.title + '" from ' + s.teacherName,
-        createdAt: datetime().toString()
+        createdAt: toString(datetime())
       })
       CREATE (learner)-[:SPENT]->(lTx)
       
