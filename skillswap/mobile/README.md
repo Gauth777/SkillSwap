@@ -1,56 +1,56 @@
-# Welcome to your Expo app 👋
+# SkillSwap Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+SkillSwap is a mobile application that facilitates decentralized peer-to-peer mentoring. Users trade skills using a virtual credit system called **Karma**.
 
-## Get started
+## What the App Does
 
-1. Install dependencies
+- **Onboarding & Profile Setup:** Users register by selecting skills they can teach and skills they want to learn.
+- **Skill Feed:** Browse and search peer requests to teach or learn skills.
+- **Skill Matching:** Automatically matches users based on complementary teaching and learning profiles.
+- **My Swaps & Session Tracking:** Request, accept, and track swap sessions (pending, accepted, completed).
+- **Karma Wallet:** A virtual wallet displaying transactions (e.g., welcome bonuses, karma spent on learning, karma earned from mentoring).
+- **AI Chat Assistant:** A smart chat helper that recommends mentorship swaps and lists in-demand skills.
 
-   ```bash
-   npm install
-   ```
+## Tech Stack
 
-2. Start the app
+- **Framework:** Expo (React Native)
+- **Routing:** Expo Router (file-based navigation)
+- **State Management:** Zustand
+- **Styling:** React Native Stylesheet & custom CSS utility variables
+- **Haptics & Icons:** Expo Haptics, Ionicons
+- **Type Checking:** TypeScript
 
-   ```bash
-   npx expo start
-   ```
+## Run Commands
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+First, ensure you are in the `mobile` directory:
 ```bash
-npm run reset-project
+cd mobile
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Install the dependencies:
+```bash
+npm install
+```
 
-### Other setup steps
+Start the application:
+```bash
+npx expo start
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Run on specific platforms:
+- **Web:** Press `w` or run `npm run web`
+- **Android:** Press `a` or run `npm run android` (requires Android Emulator or device)
+- **iOS:** Press `i` or run `npm run ios` (requires macOS and iOS Simulator)
 
-## Learn more
+## Demo Flow
 
-To learn more about developing your project with Expo, look at the following resources:
+1. **Onboarding:** Input profile details, select what you can teach (e.g., Python, JavaScript) and learn (e.g., Machine Learning basics, UI Design) to receive a welcome bonus of 8 Karma.
+2. **Explore Feed:** View public swap listings. Request a teaching session (costs Karma) or a learning session.
+3. **Check Matches:** Browse users who want to learn what you teach, or vice versa, to initiate swaps.
+4. **Schedule Swaps:** View active, accepted, and completed sessions under the **My Swaps** tab.
+5. **Manage Karma:** Track transaction logs and your balance in the **Karma Wallet** tab.
+6. **AI Swap Assistant:** Open the AI Chat Assistant from the feed header to get matching recommendations.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+---
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+*Note: Future integrations plan to connect this frontend to a Neo4j graph database for advanced recommendation queries and Sarvam AI APIs for smart assistant chat context.*
