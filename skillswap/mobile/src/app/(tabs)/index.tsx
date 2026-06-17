@@ -12,6 +12,7 @@ export default function HomeFeed() {
   const router = useRouter();
   const posts = useAppStore((state) => state.posts);
   const currentUser = useAppStore((state) => state.currentUser);
+  const syncFromBackend = useAppStore((state) => state.syncFromBackend);
   
   // Filter state
   const [filter, setFilter] = useState<'all' | 'teach' | 'learn'>('all');
@@ -24,12 +25,14 @@ export default function HomeFeed() {
     return post.type === filter;
   });
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setRefreshing(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setTimeout(() => {
+    try {
+      await syncFromBackend();
+    } finally {
       setRefreshing(false);
-    }, 1000);
+    }
   };
 
   const navigateToCreatePost = () => {

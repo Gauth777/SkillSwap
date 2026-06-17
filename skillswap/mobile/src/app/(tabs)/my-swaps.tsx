@@ -18,6 +18,8 @@ export default function MySwaps() {
   const declineSwap = useAppStore((state) => state.declineSwap);
   const completeSwap = useAppStore((state) => state.completeSwap);
 
+  const syncFromBackend = useAppStore((state) => state.syncFromBackend);
+
   const [activeTab, setActiveTab] = useState<TabType>('active');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -43,9 +45,9 @@ export default function MySwaps() {
   const handleRefresh = () => {
     setRefreshing(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setTimeout(() => {
+    syncFromBackend().finally(() => {
       setRefreshing(false);
-    }, 1000);
+    });
   };
 
   const handleAccept = (id: string) => {

@@ -5,6 +5,7 @@ import { useAppStore } from '@/store/useAppStore';
 
 export default function RootLayout() {
   const isOnboarded = useAppStore((state) => state.isOnboarded);
+  const syncFromBackend = useAppStore((state) => state.syncFromBackend);
   const router = useRouter();
   const segments = useSegments();
 
@@ -24,6 +25,13 @@ export default function RootLayout() {
       router.replace('/(tabs)');
     }
   }, [isOnboarded, segments]);
+
+  // Sync from backend when user is onboarded
+  useEffect(() => {
+    if (isOnboarded) {
+      syncFromBackend();
+    }
+  }, [isOnboarded]);
 
   return (
     <>

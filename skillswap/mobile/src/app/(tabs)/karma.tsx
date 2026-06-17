@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, View, FlatList } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useAppStore } from '@/store/useAppStore';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Shadow } from '@/theme';
 import { formatKarmaDelta, getRelativeTime } from '@/lib/karma';
@@ -10,7 +11,18 @@ import { EmptyState } from '@/components/EmptyState';
 export default function KarmaWallet() {
   const currentUser = useAppStore((state) => state.currentUser);
   const karmaLedger = useAppStore((state) => state.karmaLedger);
+  const syncFromBackend = useAppStore((state) => state.syncFromBackend);
+  const [refreshing, setRefreshing] = useState(false);
+
   const userLedger = karmaLedger.filter((tx) => tx.userId === currentUser?.id);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    syncFromBackend().finally(() => {
+      setRefreshing(false);
+    });
+  };
 
   const renderTransactionItem = ({ item }: { item: typeof userLedger[0] }) => {
     const isPositive = item.delta > 0;
@@ -85,6 +97,8 @@ export default function KarmaWallet() {
         renderItem={renderTransactionItem}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
         ListEmptyComponent={
           <EmptyState
             title="No transactions yet"
