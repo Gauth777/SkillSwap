@@ -22,3 +22,18 @@ export async function syncUserToBackend(user: User): Promise<User | null> {
 export async function fetchUser(userId: string): Promise<User | null> {
   return apiFetch<User>(`/users/${userId}`);
 }
+
+/** Update user skills on the backend */
+export async function updateUserSkills(
+  userId: string,
+  skillsToTeach: string[],
+  skillsToLearn: string[],
+): Promise<User | null> {
+  return apiFetch<User>(`/users/${userId}/skills`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      skillsToTeach,
+      skillsToLearn,
+    }),
+  });
+}

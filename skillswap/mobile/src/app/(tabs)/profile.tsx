@@ -1,6 +1,6 @@
-import React from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useState, useCallback } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Modal, ActivityIndicator } from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useAppStore } from '@/store/useAppStore';
@@ -8,15 +8,53 @@ import { SKILLS } from '@/data/mock';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Shadow } from '@/theme';
 import { UserAvatar } from '@/components/UserAvatar';
 import { SkillTag } from '@/components/SkillTag';
+import { UserSkillGraph } from '@/components/UserSkillGraph';
+import { getUserGraph } from '@/services/graphService';
+import { updateUserSkills } from '@/services/userService';
+import type { UserGraphResponse } from '@/types';
 
 export default function Profile() {
   const router = useRouter();
   const currentUser = useAppStore((state) => state.currentUser);
   const sessions = useAppStore((state) => state.sessions);
+  const posts = useAppStore((state) => state.posts);
   const karmaLedger = useAppStore((state) => state.karmaLedger);
   const resetDemo = useAppStore((state) => state.resetDemo);
 
   const currentUserId = currentUser?.id || 'u_self';
+
+  // Graph state
+  const [graphData, setGraphData] = useState<UserGraphResponse | null>(null);
+  const [graphLoading, setGraphLoading] = useState(true);
+  const [graphError, setGraphError] = useState<string | null>(null);
+
+  // Edit Skills Modal States
+  const [isEditingSkills, setIsEditingSkills] = useState(false);
+  const [tempTeachSkills, setTempTeachSkills] = useState<string[]>([]);
+  const [tempLearnSkills, setTempLearnSkills] = useState<string[]>([]);
+  const [isSavingSkills, setIsSavingSkills] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Fetch graph function
+  const loadGraph = useCallback(async () => {
+    setGraphLoading(true);
+    setGraphError(null);
+    try {
+      const data = await getUserGraph(currentUserId, currentUser, posts);
+      setGraphData(data);
+    } catch (err) {
+      setGraphError('Failed to load profile graph');
+    } finally {
+      setGraphLoading(false);
+    }
+  }, [currentUserId, currentUser, posts]);
+
+  // Refetch graph when profile tab gains focus
+  useFocusEffect(
+    useCallback(() => {
+      loadGraph();
+    }, [loadGraph])
+  );
 
   // Calculate stats
   const completedSessions = sessions.filter(
@@ -49,7 +87,6 @@ export default function Profile() {
           onPress: () => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
             resetDemo();
-            // RootLayout guard will automatically redirect back to onboarding
           },
         },
       ]
@@ -58,8 +95,74 @@ export default function Profile() {
 
   const handleEditProfile = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // Shortcut to re-trigger onboarding flow as an edit profile helper
     useAppStore.setState({ isOnboarded: false });
+  };
+
+  const handleEditSkillsPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setTempTeachSkills(currentUser?.skillsToTeach || []);
+    setTempLearnSkills(currentUser?.skillsToLearn || []);
+    setSaveError(null);
+    setIsEditingSkills(true);
+  };
+
+  const handleSaveSkills = async () => {
+    if (tempTeachSkills.length === 0) {
+      Alert.alert('Selection Required', 'Please select at least one skill to teach.');
+      return;
+    }
+    if (tempLearnSkills.length === 0) {
+      Alert.alert('Selection Required', 'Please select at least one skill to learn.');
+      return;
+    }
+
+    setIsSavingSkills(true);
+    setSaveError(null);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    try {
+      const updatedUser = await updateUserSkills(currentUserId, tempTeachSkills, tempLearnSkills);
+      if (updatedUser) {
+        useAppStore.setState({ currentUser: updatedUser });
+      } else {
+        // Fallback store update if offline
+        if (currentUser) {
+          useAppStore.setState({
+            currentUser: {
+              ...currentUser,
+              skillsToTeach: tempTeachSkills,
+              skillsToLearn: tempLearnSkills,
+            }
+          });
+        }
+      }
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setIsEditingSkills(false);
+      // Force graph refresh
+      await loadGraph();
+    } catch (err: any) {
+      setSaveError(err.message || 'Failed to update skills. Please try again.');
+    } finally {
+      setIsSavingSkills(false);
+    }
+  };
+
+  const toggleTempTeachSkill = (skillId: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (tempTeachSkills.includes(skillId)) {
+      setTempTeachSkills(tempTeachSkills.filter((id) => id !== skillId));
+    } else {
+      setTempTeachSkills([...tempTeachSkills, skillId]);
+    }
+  };
+
+  const toggleTempLearnSkill = (skillId: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (tempLearnSkills.includes(skillId)) {
+      setTempLearnSkills(tempLearnSkills.filter((id) => id !== skillId));
+    } else {
+      setTempLearnSkills([...tempLearnSkills, skillId]);
+    }
   };
 
   return (
@@ -95,7 +198,14 @@ export default function Profile() {
 
       {/* Skills Sections */}
       <View style={styles.skillsSection}>
-        <Text style={styles.sectionTitle}>Skills I Teach</Text>
+        <View style={styles.skillsHeaderRow}>
+          <Text style={styles.sectionTitle}>Skills I Teach</Text>
+          <TouchableOpacity onPress={handleEditSkillsPress} style={styles.editSkillsBtn} activeOpacity={0.7}>
+            <Ionicons name="pencil-sharp" size={12} color={Colors.primary} />
+            <Text style={styles.editSkillsBtnText}>Edit Skills</Text>
+          </TouchableOpacity>
+        </View>
+        
         <View style={styles.tagsContainer}>
           {teachSkills.length > 0 ? (
             teachSkills.map((skill) => <SkillTag key={`teach_${skill.id}`} name={skill.name} />)
@@ -112,6 +222,11 @@ export default function Profile() {
             <Text style={styles.emptyText}>No skills added yet</Text>
           )}
         </View>
+      </View>
+
+      {/* Reusable Knowledge Graph */}
+      <View style={{ marginBottom: Spacing.lg }}>
+        <UserSkillGraph graph={graphData} loading={graphLoading} error={graphError} />
       </View>
 
       {/* Glowing AI Helper Card */}
@@ -140,6 +255,77 @@ export default function Profile() {
         <Ionicons name="refresh" size={16} color={Colors.error} style={styles.resetIcon} />
         <Text style={styles.resetButtonText}>Reset Hackathon Demo</Text>
       </TouchableOpacity>
+
+      {/* Edit Skills Inline Dialog Modal */}
+      <Modal visible={isEditingSkills} animationType="fade" transparent={true} onRequestClose={() => setIsEditingSkills(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Edit My Skills</Text>
+              <TouchableOpacity onPress={() => setIsEditingSkills(false)} disabled={isSavingSkills}>
+                <Ionicons name="close" size={24} color={Colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            {saveError && <Text style={styles.errorBanner}>{saveError}</Text>}
+
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.modalScroll}>
+              <Text style={styles.modalSectionTitle}>Skills I Can Teach</Text>
+              <View style={styles.modalTagsGrid}>
+                {SKILLS.map((skill) => {
+                  const isSelected = tempTeachSkills.includes(skill.id);
+                  return (
+                    <SkillTag
+                      key={`edit_teach_${skill.id}`}
+                      name={skill.name}
+                      selected={isSelected}
+                      onPress={() => toggleTempTeachSkill(skill.id)}
+                    />
+                  );
+                })}
+              </View>
+
+              <Text style={[styles.modalSectionTitle, { marginTop: Spacing.lg }]}>Skills I Want to Learn</Text>
+              <View style={styles.modalTagsGrid}>
+                {SKILLS.map((skill) => {
+                  const isSelected = tempLearnSkills.includes(skill.id);
+                  return (
+                    <SkillTag
+                      key={`edit_learn_${skill.id}`}
+                      name={skill.name}
+                      selected={isSelected}
+                      onPress={() => toggleTempLearnSkill(skill.id)}
+                    />
+                  );
+                })}
+              </View>
+            </ScrollView>
+
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.cancelBtn]}
+                onPress={() => setIsEditingSkills(false)}
+                disabled={isSavingSkills}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.saveBtn]}
+                onPress={handleSaveSkills}
+                disabled={isSavingSkills}
+                activeOpacity={0.8}
+              >
+                {isSavingSkills ? (
+                  <ActivityIndicator size="small" color={Colors.textInverse} />
+                ) : (
+                  <Text style={styles.saveBtnText}>Save Changes</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -239,6 +425,26 @@ const styles = StyleSheet.create({
     borderColor: Colors.borderLight,
     ...Shadow.sm,
   },
+  skillsHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  editSkillsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primaryBg,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: Radius.full,
+  },
+  editSkillsBtnText: {
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.bold,
+    color: Colors.primary,
+    marginLeft: 4,
+  },
   sectionTitle: {
     fontSize: FontSize.sm,
     fontWeight: FontWeight.bold,
@@ -313,5 +519,96 @@ const styles = StyleSheet.create({
     color: Colors.error,
     fontSize: FontSize.sm,
     fontWeight: FontWeight.bold,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  modalContent: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    width: '100%',
+    maxHeight: '80%',
+    padding: Spacing.lg,
+    ...Shadow.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
+    paddingBottom: Spacing.sm,
+  },
+  modalTitle: {
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.bold,
+    color: Colors.text,
+  },
+  errorBanner: {
+    backgroundColor: Colors.errorBg,
+    color: Colors.error,
+    padding: Spacing.md,
+    borderRadius: Radius.sm,
+    marginBottom: Spacing.md,
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.medium,
+  },
+  modalScroll: {
+    paddingBottom: Spacing.lg,
+  },
+  modalSectionTitle: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.bold,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  modalTagsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: Spacing.md,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    borderTopWidth: 1,
+    borderTopColor: Colors.borderLight,
+    paddingTop: Spacing.md,
+    marginTop: Spacing.md,
+  },
+  modalBtn: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: Radius.md,
+    marginLeft: Spacing.sm,
+    minWidth: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelBtn: {
+    backgroundColor: Colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  cancelBtnText: {
+    color: Colors.textSecondary,
+    fontWeight: FontWeight.bold,
+    fontSize: FontSize.sm,
+  },
+  saveBtn: {
+    backgroundColor: Colors.primary,
+  },
+  saveBtnText: {
+    color: Colors.textInverse,
+    fontWeight: FontWeight.bold,
+    fontSize: FontSize.sm,
   },
 });

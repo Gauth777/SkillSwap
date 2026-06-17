@@ -18,19 +18,20 @@ export const SKILLS_LIST = [
 ];
 
 export function resolveSkill(identifier: string): { id: string; name: string; category: string } {
+  const trimmed = identifier.trim();
   // If it's a skill ID (e.g. "sk_py")
-  const skillById = SKILLS_LIST.find((s) => s.id === identifier);
+  const skillById = SKILLS_LIST.find((s) => s.id === trimmed);
   if (skillById) return skillById;
 
   // If it's a skill name (e.g. "Python")
-  const skillByName = SKILLS_LIST.find((s) => s.name.toLowerCase() === identifier.toLowerCase());
+  const skillByName = SKILLS_LIST.find((s) => s.name.toLowerCase() === trimmed.toLowerCase());
   if (skillByName) return skillByName;
 
   // Fallback for custom dynamic skills
-  const cleanId = 'sk_' + identifier.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const cleanId = 'sk_' + trimmed.toLowerCase().replace(/[^a-z0-9]/g, '_');
   return {
     id: cleanId,
-    name: identifier,
+    name: trimmed,
     category: 'General',
   };
 }
@@ -63,6 +64,120 @@ router.get('/:id', async (req: Request, res: Response) => {
     res.json(results[0].user);
   } catch (error: any) {
     console.error('Error fetching user:', error);
+    res.status(500).json({ error: error.message || 'Internal server error' });
+  }
+});
+
+// GET /users/:id/graph
+router.get('/:id/graph', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    // Check if user exists
+    const userCheck = await runQuery(`MATCH (u:User {id: $id}) RETURN u`, { id }, 'READ');
+    if (userCheck.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const results = await runQuery(
+      `
+      MATCH (u:User {id: $id})
+      OPTIONAL MATCH (u)-[:CAN_TEACH]->(s1:Skill)
+      OPTIONAL MATCH (u)-[:WANTS_TO_LEARN]->(s2:Skill)
+      OPTIONAL MATCH (u)-[:CREATED]->(p:SwapPost)
+      RETURN u, 
+             collect(distinct s1) as teachSkills, 
+             collect(distinct s2) as learnSkills, 
+             collect(distinct p) as posts
+      `,
+      { id },
+      'READ'
+    );
+
+    const row = results[0];
+    const userNode = row.u;
+    
+    const nodes: any[] = [];
+    const edges: any[] = [];
+
+    // Add user node
+    nodes.push({
+      id: userNode.id,
+      label: userNode.name,
+      type: 'user',
+      group: 'user',
+    });
+
+    const addedNodeIds = new Set<string>([userNode.id]);
+
+    // Add teaching skills
+    if (row.teachSkills) {
+      for (const s of row.teachSkills) {
+        if (s && s.id) {
+          if (!addedNodeIds.has(s.id)) {
+            addedNodeIds.add(s.id);
+            nodes.push({
+              id: s.id,
+              label: s.name,
+              type: 'skill',
+              group: 'teach',
+            });
+          }
+          edges.push({
+            source: userNode.id,
+            target: s.id,
+            label: 'CAN_TEACH',
+          });
+        }
+      }
+    }
+
+    // Add learning skills
+    if (row.learnSkills) {
+      for (const s of row.learnSkills) {
+        if (s && s.id) {
+          if (!addedNodeIds.has(s.id)) {
+            addedNodeIds.add(s.id);
+            nodes.push({
+              id: s.id,
+              label: s.name,
+              type: 'skill',
+              group: 'learn',
+            });
+          }
+          edges.push({
+            source: userNode.id,
+            target: s.id,
+            label: 'WANTS_TO_LEARN',
+          });
+        }
+      }
+    }
+
+    // Add created posts
+    if (row.posts) {
+      for (const p of row.posts) {
+        if (p && p.id) {
+          if (!addedNodeIds.has(p.id)) {
+            addedNodeIds.add(p.id);
+            nodes.push({
+              id: p.id,
+              label: p.title,
+              type: 'post',
+              group: 'post',
+            });
+          }
+          edges.push({
+            source: userNode.id,
+            target: p.id,
+            label: 'CREATED',
+          });
+        }
+      }
+    }
+
+    res.json({ nodes, edges });
+  } catch (error: any) {
+    console.error('Error fetching user graph:', error);
     res.status(500).json({ error: error.message || 'Internal server error' });
   }
 });

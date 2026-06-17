@@ -1,6 +1,9 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import { useAppStore } from '@/store/useAppStore';
 import type { SwapPost } from '@/types';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Shadow } from '@/theme';
 import { KarmaBadge } from './KarmaBadge';
@@ -15,6 +18,9 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, onPress, onRespond, showRespondButton = false }: PostCardProps) {
+  const router = useRouter();
+  const currentUser = useAppStore((state) => state.currentUser);
+  const currentUserId = currentUser?.id || 'u_self';
   const isTeach = post.type === 'teach';
   const durationText = formatDuration(post.duration);
   const timeAgo = getRelativeTime(post.createdAt);
@@ -32,7 +38,20 @@ export function PostCard({ post, onPress, onRespond, showRespondButton = false }
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.9} style={styles.card}>
       <View style={styles.header}>
-        <View style={styles.authorRow}>
+        <TouchableOpacity
+          style={styles.authorRow}
+          onPress={(e) => {
+            e.stopPropagation();
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            if (post.authorId === currentUserId) {
+              router.push('/(tabs)/profile');
+            } else {
+              router.push(`/user/${post.authorId}` as any);
+            }
+          }}
+          activeOpacity={0.7}
+          accessibilityLabel={`View ${post.authorName}'s profile`}
+        >
           <View style={styles.avatarPlaceholder}>
             <Text style={styles.avatarText}>{post.authorName.charAt(0).toUpperCase()}</Text>
           </View>
@@ -40,7 +59,7 @@ export function PostCard({ post, onPress, onRespond, showRespondButton = false }
             <Text style={styles.authorName}>{post.authorName}</Text>
             <Text style={styles.timeText}>{timeAgo}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
         <View style={typeBadgeStyle}>
           <Text style={typeTextStyle}>
