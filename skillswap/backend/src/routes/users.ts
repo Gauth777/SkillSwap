@@ -18,7 +18,7 @@ export const SKILLS_LIST = [
 ];
 
 export function resolveSkill(identifier: string): { id: string; name: string; category: string } {
-  const trimmed = identifier.trim();
+  const trimmed = identifier.trim().replace(/\s+/g, ' ');
   // If it's a skill ID (e.g. "sk_py")
   const skillById = SKILLS_LIST.find((s) => s.id === trimmed);
   if (skillById) return skillById;
@@ -28,12 +28,23 @@ export function resolveSkill(identifier: string): { id: string; name: string; ca
   if (skillByName) return skillByName;
 
   // Fallback for custom dynamic skills
-  const cleanId = 'sk_' + trimmed.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const cleanId = 'sk_' + trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
   return {
     id: cleanId,
     name: trimmed,
     category: 'General',
   };
+}
+
+function resolveUniqueSkills(identifiers: unknown): Array<{ id: string; name: string; category: string }> {
+  if (!Array.isArray(identifiers)) return [];
+  const unique = new Map<string, { id: string; name: string; category: string }>();
+  for (const identifier of identifiers) {
+    if (typeof identifier !== 'string' || !identifier.trim()) continue;
+    const resolved = resolveSkill(identifier);
+    unique.set(resolved.id, resolved);
+  }
+  return [...unique.values()];
 }
 
 // GET /users/:id
@@ -222,8 +233,7 @@ router.post('/', async (req: Request, res: Response) => {
     );
 
     // 3. Re-create skill nodes and relationships
-    for (const skillIdOrName of skillsToTeach) {
-      const resolved = resolveSkill(skillIdOrName);
+    for (const resolved of resolveUniqueSkills(skillsToTeach)) {
       await runQuery(
         `
         MATCH (u:User {id: $userId})
@@ -235,8 +245,7 @@ router.post('/', async (req: Request, res: Response) => {
       );
     }
 
-    for (const skillIdOrName of skillsToLearn) {
-      const resolved = resolveSkill(skillIdOrName);
+    for (const resolved of resolveUniqueSkills(skillsToLearn)) {
       await runQuery(
         `
         MATCH (u:User {id: $userId})
@@ -312,8 +321,7 @@ router.put('/:id/skills', async (req: Request, res: Response) => {
     );
 
     // Create teach relationships
-    for (const skillIdOrName of skillsToTeach) {
-      const resolved = resolveSkill(skillIdOrName);
+    for (const resolved of resolveUniqueSkills(skillsToTeach)) {
       await runQuery(
         `
         MATCH (u:User {id: $userId})
@@ -326,8 +334,7 @@ router.put('/:id/skills', async (req: Request, res: Response) => {
     }
 
     // Create learn relationships
-    for (const skillIdOrName of skillsToLearn) {
-      const resolved = resolveSkill(skillIdOrName);
+    for (const resolved of resolveUniqueSkills(skillsToLearn)) {
       await runQuery(
         `
         MATCH (u:User {id: $userId})

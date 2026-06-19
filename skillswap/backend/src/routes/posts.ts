@@ -43,7 +43,9 @@ router.post('/', async (req: Request, res: Response) => {
     karma,
   } = req.body;
 
-  if (!id || !authorId || !type || !title || !skillName || !category || !duration) {
+  const normalizedSkillName = typeof skillName === 'string' ? skillName.trim().replace(/\s+/g, ' ') : '';
+
+  if (!id || !authorId || !type || !title || !normalizedSkillName || !category || !duration) {
     return res.status(400).json({ error: 'Missing required post parameters' });
   }
 
@@ -55,7 +57,7 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     // Resolve skill to normalize link
-    const resolvedSkill = resolveSkill(skillName);
+    const resolvedSkill = resolveSkill(normalizedSkillName);
 
     // Create the SwapPost node and associate with user
     await runQuery(
@@ -81,7 +83,7 @@ router.post('/', async (req: Request, res: Response) => {
         type,
         title,
         description: description || '',
-        skillName,
+        skillName: resolvedSkill.name,
         category,
         duration: Number(duration),
         karma: Number(karma),
