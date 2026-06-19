@@ -12,6 +12,7 @@ export default function Matches() {
   const router = useRouter();
   const posts = useAppStore((state) => state.posts);
   const currentUser = useAppStore((state) => state.currentUser);
+  const syncFromBackend = useAppStore((state) => state.syncFromBackend);
   const [refreshing, setRefreshing] = useState(false);
 
   // Extract matching logic
@@ -31,12 +32,14 @@ export default function Matches() {
     }
   });
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setRefreshing(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setTimeout(() => {
+    try {
+      await syncFromBackend();
+    } finally {
       setRefreshing(false);
-    }, 1000);
+    }
   };
 
   return (

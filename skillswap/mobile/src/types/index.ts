@@ -97,3 +97,25 @@ export interface Review {
   comment: string;
   createdAt: string;
 }
+
+export type UserGraphNodeType = 'user' | 'skill' | 'post';
+export type UserGraphGroup = 'user' | 'teach' | 'learn' | 'post';
+
+export interface UserGraphNode {
+  id: string;
+  label: string;
+  type: UserGraphNodeType;
+  group: UserGraphGroup;
+}
+
+export interface UserGraphEdge {
+  source: string;
+  target: string;
+  label: 'CAN_TEACH' | 'WANTS_TO_LEARN' | 'CREATED';
+}
+
+export interface UserGraphResponse {
+  nodes: UserGraphNode[];
+  edges: UserGraphEdge[];
+  isFallback?: boolean;
+}

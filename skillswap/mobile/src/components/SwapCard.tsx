@@ -1,6 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import type { SwapSession } from '@/types';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Shadow } from '@/theme';
 import { KarmaBadge } from './KarmaBadge';
@@ -23,8 +25,10 @@ export function SwapCard({
   onDecline,
   onComplete,
 }: SwapCardProps) {
+  const router = useRouter();
   const isTeacher = session.teacherId === currentUserId;
   const partnerName = isTeacher ? session.learnerName : session.teacherName;
+  const partnerId = isTeacher ? session.learnerId : session.teacherId;
   const roleText = isTeacher ? 'Teaching' : 'Learning from';
   const durationText = formatDuration(session.duration);
 
@@ -67,7 +71,21 @@ export function SwapCard({
         <View style={styles.header}>
           <View style={styles.roleContainer}>
             <Text style={styles.rolePrefix}>{roleText} </Text>
-            <Text style={styles.partnerName}>{partnerName}</Text>
+            <TouchableOpacity
+              onPress={(e) => {
+                e.stopPropagation();
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                if (partnerId === currentUserId) {
+                  router.push('/(tabs)/profile');
+                } else {
+                  router.push(`/user/${partnerId}` as any);
+                }
+              }}
+              activeOpacity={0.7}
+              accessibilityLabel={`View ${partnerName}'s profile`}
+            >
+              <Text style={[styles.partnerName, { textDecorationLine: 'underline', color: Colors.primary }]}>{partnerName}</Text>
+            </TouchableOpacity>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: statusConfig.color + '15' }]}>
             <Ionicons name={statusConfig.icon} size={12} color={statusConfig.color} style={styles.statusIcon} />

@@ -67,7 +67,6 @@ export default function CreatePost() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      {/* Custom Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.closeButton} hitSlop={12}>
           <Ionicons name="close" size={24} color={Colors.text} />

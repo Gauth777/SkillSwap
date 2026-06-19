@@ -167,7 +167,19 @@ export default function SwapDetails() {
         {/* Participant Profile Card */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>{isAuthorSelf ? 'Your Post Details' : 'About the Mentor/Learner'}</Text>
-          <View style={styles.profileRow}>
+          <TouchableOpacity
+            style={styles.profileRow}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              if (post.authorId === currentUserId) {
+                router.push('/(tabs)/profile');
+              } else {
+                router.push(`/user/${post.authorId}` as any);
+              }
+            }}
+            activeOpacity={0.7}
+            accessibilityLabel={`View ${post.authorName}'s profile`}
+          >
             <View style={styles.avatarCircle}>
               <Text style={styles.avatarText}>{post.authorName.charAt(0).toUpperCase()}</Text>
             </View>
@@ -175,7 +187,7 @@ export default function SwapDetails() {
               <Text style={styles.profileName}>{post.authorName}</Text>
               <Text style={styles.profileSubtitle}>SkillSwap Member</Text>
             </View>
-          </View>
+          </TouchableOpacity>
           {!isAuthorSelf && (
             <Text style={styles.aboutText}>
               You can connect with {post.authorName} to exchange this skill. Acceptances and completions are recorded instantly.
